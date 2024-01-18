@@ -1,0 +1,226 @@
+{% extends 'plantilla.html' %}
+
+{% block contenido %}
+<style>
+  /* Estilos personalizados para mejorar la apariencia */
+  h1 {
+    color: #ffc107;
+    text-align: center;
+    font-size: 36px;
+    font-family: 'Arial', sans-serif;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  h3 {
+    color: #333;
+    text-align: center;
+    font-size: 35px;
+    margin-bottom: 20px;
+  }
+
+  form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+  }
+
+  th {
+    background-color: #007bff;
+    color: #1c2833;
+  }
+
+  .btn-action {
+    margin-right: 5px;
+  }
+
+  #btnEditar {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+</style>
+
+<!-- Encabezado de la página -->
+<br>
+<h1>"Explora el mundo de las profesiones literarias"</h1>
+<br>
+<h3>Descubre cómo cada profesión contribuye a la creación de historias cautivadoras.</h3>
+
+<!-- Sección izquierda con el formulario para ingresar nueva profesión -->
+<div class="row">
+  <div class="col-md-5">
+    <!-- Formulario para guardar una nueva profesión -->
+    <form action="{% url 'guardarProfesion' %}" method="post" enctype="multipart/form-data" id="guardarProfesionForm">
+      {% csrf_token %}
+
+      <!-- Campo para ingresar el nombre de la profesión -->
+      <div class="form-group">
+        <label for="nombre_rg">Nombre de la profesión</label>
+        <input type="text" name="nombre_rg" id="nombre_rg" class="form-control" placeholder="Ingrese el nombre de la profesión" required>
+      </div>
+
+      <!-- Campo para ingresar la descripción de la profesión -->
+      <div class="form-group">
+        <label for="descripcion_rg">Descripción</label>
+        <textarea name="descripcion_rg" id="descripcion_rg" class="form-control" placeholder="Descripción de la profesión" required></textarea>
+      </div>
+
+      <!-- Campo para seleccionar los autores de la profesión -->
+      <div class="form-group">
+          <label for="autores_profesion">Autores de la profesión</label>
+          <select name="autores_ids[]" id="autores_profesion" class="form-control" multiple required>
+              {% for autor in autores_disponibles %}
+              <option value="{{ autor.id_rg }}">{{ autor.nombre_rg }} {{ autor.apellido_rg }}</option>
+              {% endfor %}
+          </select>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" name="button" class="btn btn-primary">Guardar</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="reset" name="button" class="btn btn-danger">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sección derecha con el listado de profesiones existentes -->
+  <div class="col-md-7">
+    <br>
+    <!-- Tabla para mostrar el listado de profesiones -->
+    <table id="profesionesTable" class="table table-condensed">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Autores</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Itera sobre las profesiones y muestra sus detalles en la tabla -->
+        {% for profesion in profesiones %}
+        <tr>
+          <td>{{ profesion.id_rg }}</td>
+          <td>{{ profesion.nombre_rg }}</td>
+          <td>{{ profesion.descripcion_rg }}</td>
+          <td>
+            {% for autor in profesion.autores.all %}
+              {{ autor.nombre_rg }} {{ autor.apellido_rg }}<br>
+            {% endfor %}
+          </td>
+          <td>
+            <div class="btn-group">
+              <!-- Formulario de eliminación para cada profesión -->
+              <form action="{% url 'eliminarProfesion' profesion.id_rg %}" method="post" id="eliminarProfesionForm-{{ profesion.id_rg }}" style="display: inline;">
+                {% csrf_token %}
+                <button type="button" class="btn btn-danger btn-xs" onclick="confirmarEliminacion('{{ profesion.id_rg }}')">Eliminar</button>
+              </form>
+              <!-- Enlace para editar con ID -->
+              <a href="{% url 'editarProfesion' profesion.id_rg %}" id="btnEditar{{ profesion.id_rg }}" class="btn btn-warning btn-xs">Editar</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Bloque de scripts para DataTables -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#profesionesTable').DataTable({
+      dom: 'Bfrtip',
+      language: {
+        "decimal": "",
+        "emptyTable": "No hay datos disponibles en la tabla",
+        "info": "Explora el mundo de las profesiones literarias y su impacto en la creación de historias",
+        "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
+        "infoFiltered": "(filtradas de _MAX_ entradas totales)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_ entradas",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "No se encontraron registros coincidentes",
+        "paginate": {
+          "first": "",
+          "last": "",
+          "next": "",
+          "previous": "Los numero #"
+        },
+        "aria": {
+          "sortAscending": ": activar para ordenar la columna ascendente",
+          "sortDescending": ": activar para ordenar la columna descendente"
+        }
+      },
+      buttons: [
+        {
+          extend: 'pdfHtml5',
+          messageTop: 'PDF creado por PDFMake con botones para DataTables.'
+        },
+        'print',
+        'csv'
+      ]
+    });
+  });
+</script>
+
+<!-- Bloque de scripts para iziToast -->
+<script>
+  function confirmarEliminacion(id_rg) {
+    iziToast.question({
+      timeout: 15000,
+      close: true,
+      overlay: true,
+      displayMode: 'once',
+      id: 'question',
+      zindex: 999,
+      title: 'CONFIRMACIÓN',
+      message: '¿Está seguro de eliminar la profesión seleccionada?',
+      position: 'center',
+      buttons: [
+        ['<button><b>SÍ</b></button>', function (instance, toast) {
+          instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+          // Encuentra el formulario asociado y envía el formulario
+          var form = document.getElementById('eliminarProfesionForm-' + id_rg);
+          if (form) {
+            form.submit();
+          }
+        }, true],
+        ['<button>NO</button>', function (instance, toast) {
+          instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+        }],
+      ]
+    });
+  }
+
+  // Muestra un mensaje de éxito para el guardado
+  {% if messages %}
+  {% for message in messages %}
+  iziToast.success({
+    title: 'Éxito',
+    message: '{{ message }}',
+    position: 'topRight',
+  });
+  {% endfor %}
+  {% endif %}
+</script>
+
+{% endblock %}

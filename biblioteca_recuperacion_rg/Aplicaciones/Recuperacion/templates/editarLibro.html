@@ -1,0 +1,167 @@
+{% extends 'plantilla.html' %}
+
+{% block contenido %}
+<style>
+  /* Estilos personalizados para mejorar la apariencia */
+  h1 {
+    color: #007bff; /* Color del encabezado */
+    text-align: center;
+  }
+
+  /* Estilos para el formulario */
+  form {
+    background-color: #f8f9fa; /* Color de fondo del formulario */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+
+  /* Estilos para la tabla */
+  table {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 1px solid #dee2e6; /* Bordes de las celdas */
+    padding: 10px;
+    text-align: center;
+  }
+
+  th {
+    background-color: #007bff; /* Color de fondo del encabezado de la tabla */
+    color:  #1c2833 ; /* Color del texto del encabezado de la tabla */
+  }
+
+  /* Estilos para los botones de acción */
+  .btn-action {
+    margin-right: 5px;
+  }
+  #actualizarLibroForm th,
+  #actualizarLibroForm td {
+    width: 300%; /* Puedes ajustar el valor según tus necesidades */
+  }
+
+  /* Estilos para los mensajes de error */
+  .error-message {
+    color: #dc3545;
+    font-size: 80%;
+    margin-top: 5px;
+  }
+
+</style>
+
+<!-- Agrega la referencia al archivo jQuery y al plugin jQuery Validation -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+
+<script>
+  // Espera a que el documento esté listo
+  $(document).ready(function () {
+    // Agrega reglas de validación al formulario usando el plugin jQuery Validation
+    $("#actualizarLibroForm").validate({
+      // Configuración de reglas de validación
+      rules: {
+        "titulo_rg": {
+          required: true,
+        },
+        "editorial_rg": {
+          required: true,
+        },
+        "fecha_rg": {
+          required: true,
+        },
+        "genero": {
+          required: true,
+        },
+        // Agrega reglas de validación para otros campos si es necesario
+      },
+      // Mensajes de error personalizados
+      messages: {
+        "titulo_rg": {
+          required: "Por favor, ingrese el título del libro",
+        },
+        "editorial_rg": {
+          required: "Por favor, ingrese la editorial del libro",
+        },
+        "fecha_rg": {
+          required: "Por favor, ingrese la fecha de publicación del libro",
+        },
+        "genero": {
+          required: "Por favor, seleccione el género del libro",
+        },
+        // Agrega mensajes de error para otros campos si es necesario
+      },
+      // Colocar mensajes de error dentro del contenedor adecuado y aplicar la clase personalizada
+      errorPlacement: function (error, element) {
+        error.addClass("error-message");
+        error.insertAfter(element);
+      }
+    });
+  });
+</script>
+
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+    <br> <br>
+    <form class="" action="{% url 'actualizarLibro' libro.id_rg %}" method="post" enctype="multipart/form-data" id="actualizarLibroForm">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="titulo_rg">Título del Libro</label>
+        <input type="text" name="titulo_rg" id="titulo_rg" value="{{ libro.titulo_rg }}" placeholder="Ingrese el título del libro" class="form-control" required>
+      </div>
+
+      <br>
+
+      <div class="form-group">
+        <label for="editorial_rg">Editorial del Libro</label>
+        <input type="text" name="editorial_rg" id="editorial_rg" value="{{ libro.editorial_rg }}" placeholder="Ingrese la editorial del libro" class="form-control" required>
+      </div>
+
+      <br>
+
+      <div class="form-group">
+        <label for="fecha_rg">Fecha de Publicación</label>
+        <input type="date" name="fecha_rg" id="fecha_rg" value="{{ libro.fecha_rg }}" class="form-control" required>
+      </div>
+
+      <br>
+
+      <div class="form-group">
+          <label for="genero_id">Género</label>
+          <select name="genero_id" id="genero_id" class="form-control" required>
+              {% for genero in generos %}
+                  <option value="{{ genero.id_rg }}" {% if genero.id_rg == libro.genero.id_rg %}selected{% endif %}>
+                      {{ genero.nombre_rg }}
+                  </option>
+              {% endfor %}
+          </select>
+      </div>
+
+
+
+
+      <br>
+
+      <div class="form-group">
+        <label for="fotografia">Fotografía del Libro</label>
+        <input type="file" name="fotografia" id="fotografia" class="form-control">
+      </div>
+
+      <br>
+
+      <!-- Otros campos del formulario -->
+
+      <center>
+        <button type="submit" name="button" class="btn btn-primary">&nbsp;&nbsp;&nbsp;Guardar&nbsp;&nbsp;&nbsp;</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="/" class="btn btn-danger">Cancelar</a>
+      </center>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends 'plantilla.html' %}
+
+{% block contenido %}
+<style>
+  /* Estilos personalizados para mejorar la apariencia */
+  h1 {
+    color: #ffc107;
+    text-align: center;
+    font-size: 36px;
+    font-family: 'Arial', sans-serif;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  h3 {
+    color: #333;
+    text-align: center;
+    font-size: 35px;
+    margin-bottom: 20px;
+  }
+
+  form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+  }
+
+  th {
+    background-color: #007bff;
+    color: #1c2833;
+  }
+
+  .btn-action {
+    margin-right: 5px;
+  }
+
+  #btnEditar {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+</style>
+
+<!-- Encabezado de la página -->
+<br>
+<h1>"Explora una biblioteca de emociones"</h1>
+<br>
+<h3>Sumérgete en historias cautivadoras de diferentes géneros.</h3>
+
+<!-- Sección izquierda con el formulario para ingresar nuevo libro -->
+<div class="row">
+  <div class="col-md-5">
+    <!-- Formulario para guardar un nuevo libro -->
+    <form action="{% url 'guardarLibro' %}" method="post" enctype="multipart/form-data" id="guardarLibroForm">
+      {% csrf_token %}
+
+      <!-- Campo para ingresar el título del libro -->
+      <div class="form-group">
+        <label for="titulo_rg">Título del libro</label>
+        <input type="text" name="titulo_rg" id="titulo_rg" class="form-control" placeholder="Ingrese el título del libro" required>
+      </div>
+
+      <!-- Campo para ingresar la editorial del libro -->
+      <div class="form-group">
+        <label for="editorial_rg">Editorial</label>
+        <input type="text" name="editorial_rg" id="editorial_rg" class="form-control" placeholder="Ingrese la editorial del libro" required>
+      </div>
+
+      <!-- Campo para ingresar la fecha del libro -->
+      <div class="form-group">
+        <label for="fecha_rg">Fecha de publicación</label>
+        <input type="date" name="fecha_rg" id="fecha_rg" class="form-control" required>
+      </div>
+
+      <!-- Campo para seleccionar el género del libro -->
+      <div class="form-group">
+        <label for="genero_id">Género</label>
+        <select name="genero_id" id="genero_id" class="form-control" required>
+          {% for genero in generos %}
+          <option value="{{ genero.id_rg }}">{{ genero.nombre_rg }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <br>
+      <b>FOTOGRAFÍA:</b>
+      <br><br>
+      <input type="file" name="fotografia" accept="image/*" value="" class="form-control">
+      <br><br>
+
+      <div class="text-center">
+        <button type="submit" name="button" class="btn btn-primary">Guardar</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="reset" name="button" class="btn btn-danger">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sección derecha con el listado de libros existentes -->
+  <div class="col-md-7">
+    <br>
+    <!-- Tabla para mostrar el listado de libros -->
+    <table id="librosTable" class="table table-condensed">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Editorial</th>
+          <th>Fecha de Publicación</th>
+          <th>Género</th>
+          <th>FOTOGRAFÍA</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Itera sobre los libros y muestra sus detalles en la tabla -->
+        {% for libro in libros %}
+        <tr>
+          <td>{{ libro.id_rg }}</td>
+          <td>{{ libro.titulo_rg }}</td>
+          <td>{{ libro.editorial_rg }}</td>
+          <td>{{ libro.fecha_rg }}</td>
+          <td>{{ libro.genero.nombre_rg }}</td>
+          <td>
+            {% if libro.fotografia %}
+            <a href="{{ libro.fotografia.url }}" target="_blank">
+              <img src="{{ libro.fotografia.url }}" alt="" style="max-height: 50px; max-width: 50%;">
+            </a>
+            {% else %}
+            <b>N/A</b>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group">
+              <!-- Formulario de eliminación para cada libro -->
+              <form action="{% url 'eliminarLibro' libro.id_rg %}" method="post" id="eliminarLibroForm-{{ libro.id_rg }}" style="display: inline;">
+                {% csrf_token %}
+                <button type="button" class="btn btn-danger btn-xs" onclick="confirmarEliminacion('{{ libro.id_rg }}')">Eliminar</button>
+              </form>
+              <!-- Enlace para editar con ID -->
+              <a href="{% url 'editarLibro' libro.id_rg %}" class="btn btn-warning btn-xs" id="btnEditar{{ libro.id_rg }}">Editar</a>
+
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Bloque de scripts para DataTables -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#librosTable').DataTable({
+      dom: 'Bfrtip',
+      language: {
+        "decimal": "",
+        "emptyTable": "No hay datos disponibles en la tabla",
+        "info": "Explora una biblioteca diversa con historias emocionantes.",
+        "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
+        "infoFiltered": "(filtradas de _MAX_ entradas totales)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_ entradas",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "No se encontraron registros coincidentes",
+        "paginate": {
+          "first": "",
+          "last": "",
+          "next": "",
+          "previous": "Los numero #"
+        },
+        "aria": {
+          "sortAscending": ": activar para ordenar la columna ascendente",
+          "sortDescending": ": activar para ordenar la columna descendente"
+        }
+      },
+      buttons: [
+        {
+          extend: 'pdfHtml5',
+          messageTop: 'PDF creado por PDFMake con botones para DataTables.'
+        },
+        'print',
+        'csv'
+      ]
+    });
+  });
+</script>
+
+<!-- Bloque de scripts para iziToast -->
+<script>
+  function confirmarEliminacion(id_rg) {
+    iziToast.question({
+      timeout: 15000,
+      close: true,
+      overlay: true,
+      displayMode: 'once',
+      id: 'question',
+      zindex: 999,
+      title: 'CONFIRMACIÓN',
+      message: '¿Está seguro de eliminar el libro seleccionado?',
+      position: 'center',
+      buttons: [
+        ['<button><b>SÍ</b></button>', function (instance, toast) {
+          instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+          // Encuentra el formulario asociado y envía el formulario
+          var form = document.getElementById('eliminarLibroForm-' + id_rg);
+          if (form) {
+            form.submit();
+          }
+        }, true],
+        ['<button>NO</button>', function (instance, toast) {
+          instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+        }],
+      ]
+    });
+  }
+
+  // Muestra un mensaje de éxito para el guardado
+  {% if messages %}
+  {% for message in messages %}
+  iziToast.success({
+    title: 'Éxito',
+    message: '{{ message }}',
+    position: 'topRight',
+  });
+  {% endfor %}
+  {% endif %}
+</script>
+
+<!-- Bloque de scripts para jQuery validation-->
+<script>
+  // Tu script de validación aquí
+  $(document).ready(function () {
+    $("#guardarLibroForm").validate({
+      // Configuración de reglas de validación
+      rules: {
+        "titulo_rg": {
+          required: true,
+          minlength: 3,
+        },
+        "editorial_rg": {
+          required: true,
+        },
+        "fecha_rg": {
+          required: true,
+        },
+        "genero": {
+          required: true,
+        },
+        "fotografia": {
+          required: true,
+          extension: "jpg|jpeg|png|gif",
+        },
+      },
+      // Mensajes de error personalizados
+      messages: {
+        "titulo_rg": {
+          required: "Por favor, ingrese el título del libro",
+          minlength: "El título debe tener al menos 3 caracteres",
+        },
+        "editorial_rg": "Por favor, ingrese la editorial del libro",
+        "fecha_rg": "Por favor, ingrese la fecha de publicación del libro",
+        "genero": "Por favor, seleccione el género del libro",
+        "fotografia": {
+          required: "Por favor, seleccione una fotografía",
+          extension: "Formato de archivo no válido. Use formatos como jpg, jpeg, png o gif",
+        },
+      },
+      // Colocar mensajes de error dentro del contenedor adecuado y aplicar la clase personalizada
+      errorPlacement: function (error, element) {
+        error.addClass("error-message");
+        error.insertAfter(element);
+      }
+    });
+  });
+</script>
+
+{% endblock %}

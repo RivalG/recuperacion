@@ -1,0 +1,183 @@
+{% extends "./plantilla.html" %}
+{% block contenido %}
+{% load static %}
+<style>
+  /* Estilos personalizados para mejorar la apariencia */
+  h1 {
+    color: #ffc107;
+    text-align: center;
+    font-size: 36px;
+    font-family: 'Arial', sans-serif;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  h3 {
+    color: #333;
+    text-align: center;
+    font-size: 35px;
+    margin-bottom: 20px;
+  }
+
+  form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+  }
+
+  th {
+    background-color: #007bff;
+    color: #1c2833;
+  }
+
+  .btn-action {
+    margin-right: 5px;
+  }
+
+  #btnEditar {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+</style>
+
+
+<h1>Listado de Géneros</h1>
+<div class="row">
+  <div class="col-md-5">
+    <form action="{% url 'guardarGenero' %}" method="post" enctype="multipart/form-data" id="frm_nuevo_genero">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="nombre_rg">Nombre</label>
+        <input type="text" name="nombre_rg" id="nombre_rg" placeholder="Ingrese el nombre" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion_rg">Descripción</label>
+        <textarea name="descripcion_rg" id="descripcion_rg" rows="3" class="form-control" placeholder="Ingrese la descripción" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="fotografia">Fotografía</label>
+        <input type="file" name="fotografia" accept="image/*" class="form-control">
+      </div>
+
+      <div class="text-center">
+        <button type="submit" name="button" class="btn btn-primary">Guardar</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="reset" name="button" class="btn btn-danger">Cancelar</button>
+      </div>
+    </form>
+  </div>
+  <div class="col-md-7">
+    <img src="{% static 'img/logo1.jpg' %}" alt="logo" style="width: 150px; display: block; margin: 0 auto;">
+
+    <br>
+    <table class="table" id="tbl_generos">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Fotografía</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for genero in generos %}
+        <tr>
+          <td>{{ genero.id_rg }}</td>
+          <td>{{ genero.nombre_rg }}</td>
+          <td>{{ genero.descripcion_rg }}</td>
+          <td>
+            {% if genero.fotografia %}
+              <img src="{{ genero.fotografia.url }}" alt="{{ genero.nombre_rg }} Imagen" style="max-height: 50px; max-width: 100%;">
+            {% else %}
+              <b>N/A</b>
+            {% endif %}
+          </td>
+
+          <td>
+              <!-- Agregar enlaces de acciones como editar y eliminar según tus necesidades -->
+              <a href="{% url 'editarGenero' genero.id_rg %}" class="btn btn-warning">Editar</a>
+
+              <!-- Agregar aquí el enlace o función para eliminar el género -->
+              <a href="{% url 'eliminarGenero' genero.id_rg %}" class="btn btn-danger">Eliminar</a>
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script type="text/javascript">
+  // Muestra un mensaje de éxito para el guardado
+  {% if messages %}
+  {% for message in messages %}
+  iziToast.success({
+    title: 'Éxito',
+    message: '{{ message }}',
+    position: 'topRight',
+  });
+  {% endfor %}
+  {% endif %}
+</script>
+
+<!-- Agregar aquí el script necesario para la validación del formulario y otras funcionalidades si es necesario -->
+
+<script type="text/javascript">
+  $("#frm_nuevo_genero").validate({
+    rules: {
+      "nombre_rg": {
+        required: true
+      },
+      "descripcion_rg": {
+        required: true
+      },
+      "fotografia": {
+        required: true
+      }
+    },
+    messages: {
+      "nombre_rg": {
+        required: "Por favor ingrese el nombre del género"
+      },
+      "descripcion_rg": {
+        required: "Por favor ingrese la descripción del género"
+      },
+      "fotografia": {
+        required: "Seleccione la fotografía del género"
+      }
+    },
+    success: function (label) {
+      // Este código se ejecutará cuando un campo se valide correctamente
+      label.addClass('valid').text('Campo válido').css('color', 'red');
+    },
+    errorPlacement: function (error, element) {
+      // Este código se ejecutará para personalizar la ubicación de los mensajes de error
+      error.insertAfter(element).css("color", "red");
+    }
+  });
+</script>
+
+<script type="text/javascript">
+  // Puedes agregar aquí el script necesario para DataTables y otras funcionalidades si es necesario
+</script>
+
+{% endblock %}
